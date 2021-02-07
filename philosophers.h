@@ -7,6 +7,10 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
+/*
+** remain_philos: -1 = there is a dead philo, 0 all philos have eaten e_count times, > 0 all alive and doing their things
+*/
+
 typedef struct		s_settings
 {
 	int				p_count;
@@ -15,8 +19,10 @@ typedef struct		s_settings
 	int				t_sleep;
 	int				e_count;
 	pthread_mutex_t	output_mutex;
-	time_t			time;
-	int				dead;
+	pthread_mutex_t *mutexes;
+	int				remain_philos;
+	struct timeval	timeval;
+	struct timezone	timezone;
 }					t_settings;
 
 /*
@@ -34,4 +40,6 @@ typedef struct		s_philo
 
 int					ft_atoi(const char *nptr);
 int					get_settings(t_settings *settings, int argc, char **argv);
+int					print_message(long num1, int num2, char *msg, pthread_mutex_t *out);
+void				ft_putendl_fd(char *s, int fd);
 #endif

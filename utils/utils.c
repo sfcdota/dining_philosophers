@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "../philosophers.h"
 
 static int	is_over(long long int i, int multiplier, int current)
 {
@@ -54,19 +54,27 @@ int			ft_atoi(const char *nptr)
 
 int get_settings(t_settings *settings, int argc, char **argv)
 {
-	if (argc > 4 && argc < 7 || (settings->p_count = ft_atoi(argv[1])) == -1 ||
-		(settings->t_die = ft_atoi(argv[2])) == -1 ||
-		(settings->t_eat = ft_atoi(argv[3])) == -1 ||
-		(settings->t_sleep = ft_atoi(argv[4])) == -1 ||
-		(argc == 6 &&(settings->e_count = ft_atoi(argv[5])) == -1))
+	if (argc < 5 || argc > 6 || (settings->p_count = ft_atoi(argv[1])) < 2 ||
+		(settings->t_die = ft_atoi(argv[2])) < 0 ||
+		(settings->t_eat = ft_atoi(argv[3])) < 0 ||
+		(settings->t_sleep = ft_atoi(argv[4])) < 0 ||
+		(argc == 6 &&(settings->e_count = ft_atoi(argv[5])) < 0))
 	{
-		printf("There is an error in parameters input of a program.\nExit");
+		ft_putendl_fd("There is an error in parameters input of a program.\nExit", STDOUT_FILENO);
 		return (1);
 	}
+	settings->t_eat *= 1000;
+	settings->t_sleep *= 1000;
+	settings->t_die *= 1000;
 	if (argc == 5)
 		settings->e_count = -1;
 	else if (!settings->e_count)
 		return (1);
-	settings->dead = 0;
+	settings->remain_philos = settings->p_count;
+	if (gettimeofday(&settings->timeval, &settings->timezone))
+	{
+		ft_putendl_fd("Error in gettimeofday func", STDOUT_FILENO);
+		return (1);
+	}
 	return (0);
 }
