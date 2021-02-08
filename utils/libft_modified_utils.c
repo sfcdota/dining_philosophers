@@ -40,7 +40,7 @@ int			ft_atoi(const char *nptr)
 	return (i * multiplier);
 }
 
-int		str_len(char *s)
+int		ft_strlen(char *s)
 {
 	int i;
 	i = 0;

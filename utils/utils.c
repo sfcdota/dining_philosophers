@@ -18,7 +18,7 @@ unsigned int get_time()
 {
     if (gettimeofday(&timev, &zonev))
     {
-        write(1, "Error in gettimeofday func\n", 27);
+        write(1, GTOD, ft_strlen(GTOD));
         return (0);
     }
     return (timev.tv_sec * 1000 + timev.tv_usec / 1000);
@@ -31,42 +31,44 @@ int get_settings(t_settings *settings, int argc, char **argv)
 		(settings->t_eat = ft_atoi(argv[3])) < 0 ||
 		(settings->t_sleep = ft_atoi(argv[4])) < 0 ||
 		(argc == 6 &&(settings->e_count = ft_atoi(argv[5])) < 0))
-	{
-		write(1, "There is an error in parameters input of a program.\nExit\n", 57);
-		return (1);
-	}
+		return (write(1, INPUT, ft_strlen(INPUT)));
 	if (argc == 5)
 		settings->e_count = 0;
 	else if (!settings->e_count)
 		return (1);
 	if (!(settings->start_time = get_time()))
-		return (write(1, "There is an error in gettimeofday func\nExit\n", 44));
+		return (write(1, GTOD, ft_strlen(GTOD)));
 	settings->remain_philos = settings->p_count;
 	return (0);
 }
 
-int		print_message(long num1, t_box *box, char *msg, pthread_mutex_t *out)
+int		print_return(int retval, char *msg, int msg_l, pthread_mutex_t *out)
 {
-	int ok;
+	if (!(pthread_mutex_lock(out)))
+		write(1, msg, msg_l);
+	else
+		return (write(1, M_LOCK, M_LOCK_L));
+	return (pthread_mutex_unlock(out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : retval);
+}
 
-	if (num1 < 0)
+int		print_timestamp(int num, char *msg, int msg_l, t_settings *settings)
+{
+	long time;
+
+	if (!(time = get_time()))
+		return (write(1, GTOD, GTOD_L));
+	if (!(pthread_mutex_lock(&settings->output_mutex)))
 	{
-		if (!box)
+		if (settings->remain_philos != -1)
 		{
-			write(1, msg, str_len(msg));
-			return (-(int) num1);
+			ft_putnbr_fd(time - settings->start_time, STDOUT_FILENO);
+			write(1, " ", 1);
+			ft_putnbr_fd(num, STDOUT_FILENO);
+			write(1, " ", 1);
+			write(1, msg, msg_l);
 		}
-		return (0);
 	}
-	if (!(ok = pthread_mutex_lock(out)) && box->settings->remain_philos != -1)
-	{
-		ft_putnbr_fd(num1, STDOUT_FILENO);
-		write(1, " ", STDOUT_FILENO);
-		ft_putnbr_fd(box->num, STDOUT_FILENO);
-		write(1, " ", STDOUT_FILENO);
-		write(1, msg, str_len(msg));
-	}
-	if ((ok = (pthread_mutex_unlock(out) || ok)) && box->settings->remain_philos != -1)
-		write(1, "Error in mutex lock/unlock functions\n", 37);
-	return (ok);
+	else
+		return (write(1, M_LOCK, M_LOCK_L));
+	return (pthread_mutex_unlock(&settings->output_mutex) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
 }

@@ -10,7 +10,7 @@ void destroy_mutexes(pthread_mutex_t *mutexes, t_settings *settings, int index)
 	while (++i < index && ok)
 		ok = pthread_mutex_destroy(mutexes++);
 	if (!ok)
-		print_message(-1, NULL, "There is an error in mutex destroy func\n", &settings->output_mutex);
+		print_return(1, M_DESTROY, M_DESTROY_L, &settings->output_mutex);
 }
 
 int set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
@@ -26,7 +26,7 @@ int set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
 	if (ok)
 		destroy_mutexes(start, settings, i);
 	
-	return (ok ? ok : pthread_mutex_init(&settings->output_mutex, NULL));
+	return (ok ? ok : pthread_mutex_init(&settings->output_mutex, NULL) || pthread_mutex_init(&settings->die_mutex, NULL));
 }
 
 //void set_philos(t_philo *philos, pthread_mutex_t *mutexes, t_settings *settings)
@@ -46,32 +46,18 @@ int set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
 unsigned int time_with_error(t_box *box)
 {
 	int ok;
-	if ((ok = !(box->temp_time = get_time()) && print_message(-1, NULL,
-		"Error in gettimeofday func\n", &box->settings->output_mutex)))
-		box->settings->remain_philos = -1;
+	if ((ok = !(box->temp_time = get_time()) && print_return(1, GTOD, GTOD_L,
+		&box->settings->output_mutex)))
+		box->settings->remain_philos = -box->num;
 	return (ok ? ok : box->temp_time);
 }
 
-int sleep_with_error(long val, char *message, t_box *box)
+int check_death(t_box *box)
 {
-	if (!(time_with_error(box)))
-		return (1);
-	print_message((box->temp_time - box->settings->start_time), box, message, &box->settings->output_mutex);
-	if (val && usleep(val * 1000))
-		return (print_message(-1, NULL, "Error in usleep\n", &box->settings->output_mutex));
-	return (0);
-}
-
-
-
-int check_death(t_box *box, long long start)
-{
-	if (!(time_with_error(box)))
-		return (1);
-	if ((box->temp_time - start) > box->settings->t_die)
+	if (!(time_with_error(box)) || (box->temp_time - box->start) > box->settings->t_die || box->settings->remain_philos < 0)
 	{
-		print_message(box->temp_time - box->settings->start_time, box, "died\n", &box->settings->output_mutex);
-		box->settings->remain_philos = -1;
+		if (box->settings->remain_philos >= 0)
+			box->settings->remain_philos = -box->num;
 		pthread_mutex_unlock(box->left_fork);
 		pthread_mutex_unlock(box->right_fork);
 		return (1);
@@ -79,89 +65,162 @@ int check_death(t_box *box, long long start)
 	return (0);
 }
 
+int sleep_with_error(long val, char *msg, int msg_l, t_box *box)
+{
+	if (!(time_with_error(box)))
+		return (1);
+	print_timestamp(box->num, msg, msg_l, box->settings);
+	if (val && usleep(val * 1000))
+		return (print_return(1, USLEEP, USLEEP_L, &box->settings->output_mutex));
+	return (check_death(box));
+}
+
+
+
+
+
 int take_a_fork(t_box *box, long start, pthread_mutex_t *fork)
 {
-	if (box->settings->remain_philos == -1)
+	if (box->settings->remain_philos <= 0)
 		return (-1);
 	if (pthread_mutex_lock(fork))
 	{
-		box->settings->remain_philos = -1;
-		print_message(-1, NULL, "Error in mutex lock func\n", &box->settings->output_mutex);
-		return (1);
+		box->settings->remain_philos = -box->num;
+		return (print_return(1, M_LOCK, M_LOCK_L, &box->settings->output_mutex));
 	}
-	return (check_death(box, start) ? pthread_mutex_unlock(fork) || 1 : print_message(box->temp_time - box->settings->start_time, box, "has taken a fork\n", &box->settings->output_mutex));
+	return (check_death(box) || print_timestamp(box->num, FORK, FORK_L, box->settings));
 }
 
-int simulation(t_box *box, long long *start, int i)
+int simulation(t_box *box, int i)
 {
-	int eat_num;
-	
-	eat_num = (box->num % 2 == 0 ? box->num - 2 : box->num - 1) % box->num;
-	if (pthread_mutex_lock(&box->settings->eat_mutexes[eat_num]))
-	{
-		box->settings->remain_philos = -1;
-		print_message(-1, NULL, "Error in mutex lock func\n", &box->settings->output_mutex);
+	if (!(box->start = time_with_error(box)))
 		return (1);
+	if (pthread_mutex_lock(box->eat))
+	{
+		box->settings->remain_philos = -box->num;
+		return (print_return(1, M_LOCK, M_LOCK_L, &box->settings->output_mutex));
 	}
-    if ((take_a_fork(box, *start, box->left_fork) || take_a_fork(box, *start, box->right_fork)))
+    if ((take_a_fork(box, box->start, box->left_fork) || take_a_fork(box, box->start, box->right_fork)))
             return (1);
-	if (!(*start = box->temp_time))
+	if (!(box->start = time_with_error(box)))
 		return (1);
 	if (i == box->settings->e_count)
 		box->settings->remain_philos--;
-	return (sleep_with_error(box->settings->t_eat, "is eating\n", box) ||
-	print_message(-1, pthread_mutex_unlock(&box->settings->eat_mutexes[eat_num]) || pthread_mutex_unlock(box->left_fork) ||
-	pthread_mutex_unlock(box->right_fork) ? NULL : box, "There is an error in mutex unlock func\n", &box->settings->output_mutex) ||
-	check_death(box, *start) || sleep_with_error(box->settings->t_sleep, "is sleeping\n", box) || check_death(box, *start) ||
-	sleep_with_error(0, "is thinking\n", box));
 	
+	
+//	
+//	int ok;
+//	ok = sleep_with_error(box->settings->t_eat, EAT, EAT_L, box);
+//	pthread_mutex_lock(&box->settings->output_mutex);
+//	write(1, "eat end val = ", 14);
+//	ft_putnbr_fd(ok, STDOUT_FILENO);
+//	write(1, "\n", 1);
+//	pthread_mutex_unlock(&box->settings->output_mutex);
+//	
+//	
+//	ok = pthread_mutex_unlock(box->left_fork);
+//	pthread_mutex_lock(&box->settings->output_mutex);
+//	write(1, "left end val = ", 15);
+//	ft_putnbr_fd(ok, STDOUT_FILENO);
+//	write(1, "\n", 1);
+//	pthread_mutex_unlock(&box->settings->output_mutex);
+//
+//	
+//	ok = pthread_mutex_unlock(box->right_fork);
+//	pthread_mutex_lock(&box->settings->output_mutex);
+//	write(1, "right end val = ", 16);
+//	ft_putnbr_fd(ok, STDOUT_FILENO);
+//	write(1, "\n", 1);
+//	pthread_mutex_unlock(&box->settings->output_mutex);
+//
+//	
+//	ok = pthread_mutex_unlock(box->eat);
+//	write(1, "eatmut end val = ", 17);
+//	ft_putnbr_fd(ok, STDOUT_FILENO);
+//	write(1, "\n", 1);
+//	pthread_mutex_unlock(&box->settings->output_mutex);
+//	ok = sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box);
+//	ok = sleep_with_error(0, THINK, THINK_L, box);
+//	return (0);
+
+
+
+	return (sleep_with_error(box->settings->t_eat, EAT, EAT_L, box) ||
+	print_return(pthread_mutex_unlock(box->right_fork) || pthread_mutex_unlock(box->left_fork)
+	|| pthread_mutex_unlock(box->eat), M_UNLOCK, M_UNLOCK_L, &box->settings->output_mutex)
+	|| sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box) ||
+	sleep_with_error(0, THINK, THINK_L, box));
 }
 
 void *start_simulation(void *arg)
 {
 	t_box *box;
-	long long	start;
 	box = (t_box *)arg;
 	int i;
 
 	i = 0;
 	while (box->settings->remain_philos > 0 && time_with_error(box))
 	{
-		if (!(start = get_time()) || simulation(box, &start, i))
+		if (simulation(box, i))
+		{
+			box->settings->remain_philos = -box->num;
 			return (NULL);
+		}
 		if (box->settings->e_count != -1)
 		    i++;
 	}
 	return (NULL);
 }
 
+void *monitor(void *arg)
+{
+	t_settings *settings = (t_settings *)arg;
+	int ok;
+	while (1)
+	{
+		if (settings->remain_philos < 0)
+		{
+			print_timestamp(settings->remain_philos, DIE, DIE_L, settings);
+			break ;
+		}
+		if (usleep(1000))
+		{
+			settings->remain_philos = print_return(-1, USLEEP, USLEEP_L, &settings->output_mutex);
+			return (NULL);
+		}
+	}
+	while (settings->p_count-- > 0)
+		ok = ok || pthread_join(settings->threads[settings->p_count - 1], NULL);
+	if (ok)
+		print_return(1, TH_JO, TH_JO_L, &settings->output_mutex);
+	return (NULL);
+}
 
 int	set_box(t_box *boxes ,t_philo *philos, pthread_mutex_t *mutexes, t_settings *settings)
 {
 	int i;
-	pthread_t thread;
-	int ok;
+	pthread_t threads[settings->p_count + 1];
 	
 	i = -1;
-	ok = 0;
+	settings->threads = threads;
+	if (pthread_create(&threads[settings->p_count], NULL, monitor, (void *)settings))
+		return (write(1, TH_CR, TH_CR_L));
 	while (++i < settings->p_count)
 	{
 		boxes->settings = settings;
 		boxes->left_fork = mutexes + i;
 		boxes->right_fork = i == settings->p_count - 1 ? mutexes : mutexes + i + 1;
+		boxes->eat = &settings->eat_mutexes[((i + 1)% 2 == 0 ? i - 1 : i) % (i + 1)];
 		boxes->num = i + 1;
-		if (pthread_create(&thread, NULL, start_simulation, (void *)(boxes))
-		|| pthread_detach(thread))
+		if (pthread_create(&threads[i], NULL, start_simulation, (void *)(boxes)))
 		{
 			settings->remain_philos = -1;
-			return (print_message(-1, NULL, "Error in thread create/detach\n", &settings->output_mutex));
+			return (print_return(1, TH_CR, TH_CR_L, &settings->output_mutex));
 		}
 		boxes++;
 	}
-	while (settings->remain_philos != -1 || settings->e_count != -1 && settings->remain_philos == 0 && !ok)
-		ok = usleep(1000);
-	if (ok || usleep(1000))
-		return (1);
+	if (pthread_join(threads[settings->p_count], NULL))
+		return (write(1, TH_JO, TH_JO_L));
 	return (0);
 }
 
@@ -177,7 +236,7 @@ int main(int argc, char **argv)
 	t_philo philos[settings.p_count];
 	t_box boxes[settings.p_count];
 	if (set_mutexes(mutexes, &settings) || set_mutexes(eat_mutexes, &settings))
-		return (print_message(-1, NULL, "Error in mutex init\n", &settings.output_mutex));
+		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings.output_mutex));
 	settings.eat_mutexes = eat_mutexes;
 //	set_philos(philos, mutexes, &settings);
 	ok = set_box(boxes, philos, mutexes, &settings);
