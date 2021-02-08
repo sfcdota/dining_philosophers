@@ -45,7 +45,10 @@ int get_settings(t_settings *settings, int argc, char **argv)
 int		print_return(int retval, char *msg, int msg_l, pthread_mutex_t *out)
 {
 	if (!(pthread_mutex_lock(out)))
-		write(1, msg, msg_l);
+	{
+		if (retval)
+			write(1, msg, msg_l);
+	}
 	else
 		return (write(1, M_LOCK, M_LOCK_L));
 	return (pthread_mutex_unlock(out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : retval);

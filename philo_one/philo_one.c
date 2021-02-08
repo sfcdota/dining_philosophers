@@ -58,8 +58,6 @@ int check_death(t_box *box)
 	{
 		if (box->settings->remain_philos >= 0)
 			box->settings->remain_philos = -box->num;
-		pthread_mutex_unlock(box->left_fork);
-		pthread_mutex_unlock(box->right_fork);
 		return (1);
 	}
 	return (0);
@@ -82,7 +80,7 @@ int sleep_with_error(long val, char *msg, int msg_l, t_box *box)
 int take_a_fork(t_box *box, long start, pthread_mutex_t *fork)
 {
 	if (box->settings->remain_philos <= 0)
-		return (-1);
+		return (1);
 	if (pthread_mutex_lock(fork))
 	{
 		box->settings->remain_philos = -box->num;
@@ -100,10 +98,19 @@ int simulation(t_box *box, int i)
 		box->settings->remain_philos = -box->num;
 		return (print_return(1, M_LOCK, M_LOCK_L, &box->settings->output_mutex));
 	}
-    if ((take_a_fork(box, box->start, box->left_fork) || take_a_fork(box, box->start, box->right_fork)))
-            return (1);
-	if (!(box->start = time_with_error(box)))
+	if (check_death(box))
+	{
+		pthread_mutex_unlock(box->eat);
 		return (1);
+	}
+    if ((take_a_fork(box, box->start, box->left_fork) || take_a_fork(box, box->start, box->right_fork)) ||
+		!(box->start = time_with_error(box)))
+	{
+		pthread_mutex_unlock(box->eat);
+		pthread_mutex_unlock(box->left_fork);
+		pthread_mutex_unlock(box->right_fork);
+		return (1);
+	}
 	if (i == box->settings->e_count)
 		box->settings->remain_philos--;
 	
@@ -142,11 +149,11 @@ int simulation(t_box *box, int i)
 //	ok = sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box);
 //	ok = sleep_with_error(0, THINK, THINK_L, box);
 //	return (0);
+	sleep_with_error(box->settings->t_eat, EAT, EAT_L, box);
 
 
-
-	return (sleep_with_error(box->settings->t_eat, EAT, EAT_L, box) ||
-	print_return(pthread_mutex_unlock(box->right_fork) || pthread_mutex_unlock(box->left_fork)
+	return (
+	print_return(pthread_mutex_unlock(box->left_fork) || pthread_mutex_unlock(box->right_fork)
 	|| pthread_mutex_unlock(box->eat), M_UNLOCK, M_UNLOCK_L, &box->settings->output_mutex)
 	|| sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box) ||
 	sleep_with_error(0, THINK, THINK_L, box));
@@ -183,11 +190,7 @@ void *monitor(void *arg)
 			print_timestamp(settings->remain_philos, DIE, DIE_L, settings);
 			break ;
 		}
-		if (usleep(1000))
-		{
-			settings->remain_philos = print_return(-1, USLEEP, USLEEP_L, &settings->output_mutex);
-			return (NULL);
-		}
+		usleep(1000);
 	}
 	while (settings->p_count-- > 0)
 		ok = ok || pthread_join(settings->threads[settings->p_count - 1], NULL);
