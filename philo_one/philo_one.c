@@ -181,21 +181,35 @@ void *start_simulation(void *arg)
 
 void *monitor(void *arg)
 {
-	t_settings *settings = (t_settings *)arg;
+	t_box *boxes = (t_box *)arg;
 	int ok;
-	while (1)
+	ok = 1;
+	int i;
+	while (ok)
 	{
-		if (settings->remain_philos < 0)
-		{
-			print_timestamp(settings->remain_philos, DIE, DIE_L, settings);
-			break ;
-		}
 		usleep(1000);
+		i = -1;
+		while (++i < boxes->settings->p_count && ok)
+		{
+			boxes[i].temp_time = get_time();
+			if (boxes[i].temp_time - boxes[i].start > boxes->settings->t_die)
+			{
+				boxes->settings->remain_philos = -boxes[i].num;
+				pthread_mutex_lock(&boxes->settings->output_mutex);
+				ft_putnbr_fd(boxes[i].temp_time - boxes[i].settings->start_time, STDOUT_FILENO);
+				write(1, " ", 1);
+				ft_putnbr_fd(boxes[i].num, STDOUT_FILENO);
+				write(1, " ", 1);
+				write(1, DIE, DIE_L);
+				pthread_mutex_unlock(&boxes->settings->output_mutex);
+				ok = 0;
+			}
+		}
 	}
-	while (settings->p_count-- > 0)
-		ok = ok || pthread_join(settings->threads[settings->p_count - 1], NULL);
+	while (boxes->settings->p_count-- > 0)
+		ok = ok || pthread_join(boxes->settings->threads[boxes->settings->p_count - 1], NULL);
 	if (ok)
-		print_return(1, TH_JO, TH_JO_L, &settings->output_mutex);
+		print_return(1, TH_JO, TH_JO_L, &boxes->settings->output_mutex);
 	return (NULL);
 }
 
@@ -206,7 +220,7 @@ int	set_box(t_box *boxes ,t_philo *philos, pthread_mutex_t *mutexes, t_settings 
 	
 	i = -1;
 	settings->threads = threads;
-	if (pthread_create(&threads[settings->p_count], NULL, monitor, (void *)settings))
+	if (pthread_create(&threads[settings->p_count], NULL, monitor, (void *)boxes))
 		return (write(1, TH_CR, TH_CR_L));
 	while (++i < settings->p_count)
 	{
