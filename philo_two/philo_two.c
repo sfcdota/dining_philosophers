@@ -51,23 +51,23 @@ int take_fork(t_ph *box)
 	return (check_death(box));
 }
 
-int eat(t_ph *box)
+long long eat(t_ph *box)
 {
 	int ok = 0;
 	if (take_fork(box))
 		sem_post(box->forks);
 	if (take_fork(box) || !(box->start = get_time()) || sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
 	{
-		if (box->settings->e_count != -1)
-			box->eat_count--;
 		sem_post(box->forks);
 		sem_post(box->forks);
 		return (1);
 	}
-	if (box->settings->e_count != -1)
+	sem_post(box->forks);
+	sem_post(box->forks);
+	if (box->eat_count > 0)
 		box->eat_count--;
-	sem_post(box->forks);
-	sem_post(box->forks);
+	if (!box->eat_count)
+		box->settings->remain_philos--;
 	return (0);
 }
 
@@ -81,14 +81,12 @@ void *start_simulation(void *arg)
 {
 	t_ph *box;
 	box = (t_ph *)arg;
-	long long i;
 
 	box->eat_count = box->settings->e_count;
 	while (box->settings->remain_philos > 0 && box->eat_count)
 	{
 		if (simulation(box))
 			return (NULL);
-
 	}
 	box->settings->remain_philos--;
 	return (NULL);
