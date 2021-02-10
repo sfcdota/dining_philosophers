@@ -16,5 +16,5 @@ include_directories(philo_two/)
 include_directories(philo_three/)
 
 add_executable(philo_one ${philo_one} ${utils} philo_one/philo_one.h philo_one/philo_simulation.c utils/libft_modified_utils.c)
-add_executable(philo_two ${philo_two})
+add_executable(philo_two ${philo_two} ${utils} philo_two/philo_two.h)
 add_executable(philo_three ${philo_three})

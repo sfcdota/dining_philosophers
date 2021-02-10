@@ -52,7 +52,7 @@ int check_death(t_ph *box)
 {
 	if (pthread_mutex_lock(box->dead))
 	{
-		if (box->settings->remain_philos >= 0)
+		if (box->settings->remain_philos > 0)
 			box->settings->remain_philos = -box->num;
 		return (print_return(1, M_LOCK, M_LOCK_L, &box->settings->output_mutex));
 	}
@@ -92,7 +92,7 @@ int eat(t_ph *box, long long i)
 	int ok = 0;
 	if (pthread_mutex_lock(box->eat))
 	{
-		if (box->settings->remain_philos >= 0)
+		if (box->settings->remain_philos > 0)
 			box->settings->remain_philos = -box->num;
 		return (print_return(1, M_LOCK, M_LOCK_L,
 			&box->settings->output_mutex));
@@ -172,7 +172,7 @@ void monitor(t_ph *phs)
 				}
 			}
 		}
-		usleep(1000);
+		usleep(5000);
 	}
 	i = phs->settings->p_count;
 	while (!ok && --i >= 0)

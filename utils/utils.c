@@ -33,7 +33,7 @@ int get_settings(t_settings *settings, int argc, char **argv)
 		(argc == 6 &&(settings->e_count = ft_atoi(argv[5])) < 0))
 		return (write(1, INPUT, ft_strlen(INPUT)));
 	if (argc == 5)
-		settings->e_count = 0;
+		settings->e_count = -1;
 	else if (!settings->e_count)
 		return (1);
 	if (!(settings->start_time = get_time()))
