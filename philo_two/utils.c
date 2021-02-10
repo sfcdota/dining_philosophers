@@ -58,7 +58,7 @@ int		print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
 {
 	if (!(ph->temp_time = get_time()))
 		return (write(1, GTOD, GTOD_L));
-	if (!(pthread_mutex_lock(&ph->settings->output_mutex)))
+	if (!(sem_wait(ph->settings->out)))
 	{
 		if (ph->settings->remain_philos != -1)
 		{
@@ -71,5 +71,5 @@ int		print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
 	}
 	else
 		return (write(1, M_LOCK, M_LOCK_L));
-	return (pthread_mutex_unlock(&ph->settings->output_mutex) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
+	return (sem_post(ph->settings->out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
 }
