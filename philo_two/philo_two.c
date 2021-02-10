@@ -165,6 +165,12 @@ int main(int argc, char **argv)
 	settings.forks = sem_open("forks", O_CREAT | O_EXCL, 0644, settings.p_count);
 	settings.out = sem_open("out", O_CREAT | O_EXCL, 0644, 1);
 	settings.dead = sem_open("dead", O_CREAT | O_EXCL, 0644, 1);
+	sem_unlink("forks");
+	sem_unlink("out");
+	sem_unlink("dead");
+	sem_close(settings.forks);
+	sem_close(settings.out);
+	sem_close(settings.dead);
 	set_philos(phs, &settings);
 	ok = set_box(phs, &settings);
 	return (ok);
