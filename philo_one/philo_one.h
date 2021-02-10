@@ -1,6 +1,6 @@
 #ifndef PHILOSOPHERS_PHILO_ONE_H
 # define PHILOSOPHERS_PHILO_ONE_H
-# include "../philosophers.h"
+# include "philosophers.h"
 
 typedef struct	s_ph
 {

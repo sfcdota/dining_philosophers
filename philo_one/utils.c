@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../philosophers.h"
-#include "../philo_one/philo_one.h"
+#include "philosophers.h"
+#include "philo_one.h"
 
 
 unsigned int get_time()

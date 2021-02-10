@@ -1,4 +1,4 @@
-#include "../philosophers.h"
+#include "philosophers.h"
 
 static int	is_over(long long int i, int multiplier, int current)
 {

@@ -48,11 +48,14 @@ typedef struct		s_settings
 	long long		t_sleep;
 	long long		e_count;
 	pthread_mutex_t	output_mutex;
-	pthread_mutex_t *die_mutexes;
+	pthread_mutex_t *die_mutex;
 	pthread_mutex_t *eat_mutexes;
 	int				remain_philos;
 	unsigned int	start_time;
 	pthread_t		*phs;
+	sem_t *forks;
+	sem_t *out;
+	sem_t *dead;
 }					t_settings;
 
 

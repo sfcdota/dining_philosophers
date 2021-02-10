@@ -1,4 +1,4 @@
-#include "../philosophers.h"
+#include "philosophers.h"
 #include "philo_two.h"
 #include <error.h>
 #include <errno.h>
@@ -42,7 +42,7 @@ void set_philos(t_ph *phs, t_settings *settings, pthread_mutex_t *mutexes)
 		phs[i].left_fork = &mutexes[i];
 		phs[i].right_fork = i == settings->p_count - 1 ? &mutexes[0] : &mutexes[i + 1];
 		phs[i].eat = &settings->eat_mutexes[((i + 1)% 2 == 0 ? i - 1 : i) % (i + 1)];
-		phs[i].dead = &settings->die_mutexes[i];
+		phs[i].dead = settings->die_mutex;
 		phs[i].num = i + 1;
 		phs[i].thread_started = 0;
 	}
@@ -52,7 +52,7 @@ int check_death(t_ph *box)
 {
 	if (pthread_mutex_lock(box->dead))
 	{
-		if (box->settings->remain_philos >= 0)
+		if (box->settings->remain_philos > 0)
 			box->settings->remain_philos = -box->num;
 		return (print_return(1, M_LOCK, M_LOCK_L, &box->settings->output_mutex));
 	}
@@ -92,7 +92,7 @@ int eat(t_ph *box, long long i)
 	int ok = 0;
 	if (pthread_mutex_lock(box->eat))
 	{
-		if (box->settings->remain_philos >= 0)
+		if (box->settings->remain_philos > 0)
 			box->settings->remain_philos = -box->num;
 		return (print_return(1, M_LOCK, M_LOCK_L,
 			&box->settings->output_mutex));
@@ -149,7 +149,6 @@ void monitor(t_ph *phs)
 	int ok;
 	ok = 1;
 	int i;
-	int j;
 
 	while (ok && phs->settings->remain_philos)
 	{
@@ -162,21 +161,16 @@ void monitor(t_ph *phs)
 				if (phs[i].temp_time - phs[i].start > phs->settings->t_die)
 				{
 					print_timestamp(phs[i].num, DIE, DIE_L, &phs[i]);
-					pthread_mutex_lock(phs[i].dead);
+					pthread_mutex_lock(phs->dead);
 					phs->settings->remain_philos = -phs[i].num;
-					j = -1;
-					while (++j < phs->settings->p_count)
-						if (j != i)
-							pthread_mutex_lock(phs[j].dead);
 					ok = 0;
 				}
 			}
 		}
-		usleep(1000);
+		usleep(5000);
 	}
-	i = phs->settings->p_count;
-	while (!ok && --i >= 0)
-		pthread_mutex_unlock(phs[i].dead);
+	if (!ok)
+		pthread_mutex_unlock(phs->dead);
 }
 
 int	set_box(t_ph *boxes , pthread_mutex_t *mutexes, t_settings *settings)
@@ -200,7 +194,7 @@ int	set_box(t_ph *boxes , pthread_mutex_t *mutexes, t_settings *settings)
 	i = -1;
 	while (++i < settings->p_count)
 	{
-		printf("thread #%d join...\n", i);
+//		printf("thread #%d join...\n", i);
 		if (pthread_join(settings->phs[i], NULL))
 			print_return(1, TH_JO, TH_JO_L, &settings->output_mutex);
 	}
@@ -216,13 +210,14 @@ int main(int argc, char **argv)
 		return (ok);
 	pthread_mutex_t mutexes[settings.p_count];
 	pthread_mutex_t eat_mutexes[settings.p_count];
-	pthread_mutex_t die_mutexes[settings.p_count];
+	pthread_mutex_t die_mutex;
 	t_ph phs[settings.p_count];
 	pthread_t threads[settings.p_count + 1];
-	if (set_mutexes(mutexes, &settings) || set_mutexes(eat_mutexes, &settings) || set_mutexes(die_mutexes, &settings))
+	if (set_mutexes(mutexes, &settings) || set_mutexes(eat_mutexes, &settings) ||
+		pthread_mutex_init(&die_mutex, NULL))
 		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings.output_mutex));
 	settings.eat_mutexes = eat_mutexes;
-	settings.die_mutexes = die_mutexes;
+	settings.die_mutex = &die_mutex;
 	settings.phs = threads;
 	set_philos(phs, &settings, mutexes);
 	ok = set_box(phs,  mutexes, &settings);
@@ -233,6 +228,6 @@ int main(int argc, char **argv)
 	destroy_mutexes(eat_mutexes, &settings, settings.p_count);
 	printf("die mutex destroy:\n");
 
-	destroy_mutexes(die_mutexes,&settings, settings.p_count);
+	destroy_mutexes(&die_mutex,&settings, 1);
 	return (ok);
 }
