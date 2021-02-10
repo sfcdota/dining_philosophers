@@ -54,17 +54,15 @@ int		print_return(int retval, char *msg, int msg_l, pthread_mutex_t *out)
 	return (pthread_mutex_unlock(out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : retval);
 }
 
-int		print_timestamp(int num, char *msg, int msg_l, t_settings *settings)
+int		print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
 {
-	long time;
-
-	if (!(time = get_time()))
+	if (!(ph->temp_time = get_time()))
 		return (write(1, GTOD, GTOD_L));
-	if (!(pthread_mutex_lock(&settings->output_mutex)))
+	if (!(pthread_mutex_lock(&ph->settings->output_mutex)))
 	{
-		if (settings->remain_philos != -1)
+		if (ph->settings->remain_philos != -1)
 		{
-			ft_putnbr_fd(time - settings->start_time, STDOUT_FILENO);
+			ft_putnbr_fd(ph->temp_time - ph->settings->start_time, STDOUT_FILENO);
 			write(1, " ", 1);
 			ft_putnbr_fd(num, STDOUT_FILENO);
 			write(1, " ", 1);
@@ -73,5 +71,5 @@ int		print_timestamp(int num, char *msg, int msg_l, t_settings *settings)
 	}
 	else
 		return (write(1, M_LOCK, M_LOCK_L));
-	return (pthread_mutex_unlock(&settings->output_mutex) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
+	return (pthread_mutex_unlock(&ph->settings->output_mutex) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
 }

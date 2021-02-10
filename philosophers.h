@@ -48,25 +48,13 @@ typedef struct		s_settings
 	long long		t_sleep;
 	long long		e_count;
 	pthread_mutex_t	output_mutex;
-	pthread_mutex_t die_mutex;
+	pthread_mutex_t *die_mutexes;
 	pthread_mutex_t *eat_mutexes;
 	int				remain_philos;
 	unsigned int	start_time;
-	pthread_t		*threads;
+	pthread_t		*phs;
 }					t_settings;
 
-/*
-** state: -1 init, 0 = eating, 1 = sleeping, 2 = thinking
-** [optional]eat_count: -1 init, 0-[settings.e_count] = count 
-*/
-typedef struct		s_philo
-{
-	pthread_mutex_t	*left_fork;
-	pthread_mutex_t	*right_fork;
-	int				state;
-	int				eat_count;
-	
-}					t_philo;
 
 int					ft_atoi(const char *nptr);
 int					get_settings(t_settings *settings, int argc, char **argv);
