@@ -27,7 +27,6 @@ int			ft_isdigit(int c)
 	return (c > 47 && c < 58 ? 1 : 0);
 }
 
-
 int			ft_atoi(const char *nptr)
 {
 	long long int	i;
@@ -52,16 +51,17 @@ int			ft_atoi(const char *nptr)
 	return (i * multiplier);
 }
 
-int		ft_strlen(char *s)
+int			ft_strlen(char *s)
 {
 	int i;
+
 	i = 0;
 	while (s && *s && *s++)
 		i++;
 	return (i);
 }
 
-void	ft_putnbr_fd(long n, int fd)
+void		ft_putnbr_fd(long n, int fd)
 {
 	unsigned char c;
 

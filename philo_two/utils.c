@@ -13,24 +13,23 @@
 #include "philosophers_two.h"
 #include "philo_two.h"
 
-
-unsigned int get_time()
+unsigned int	get_time(void)
 {
-    if (gettimeofday(&timev, &zonev))
-    {
-        write(1, GTOD, ft_strlen(GTOD));
-        return (0);
-    }
-    return (timev.tv_sec * 1000 + timev.tv_usec / 1000);
+	if (gettimeofday(&timev, &zonev))
+	{
+		write(1, GTOD, ft_strlen(GTOD));
+		return (0);
+	}
+	return (timev.tv_sec * 1000 + timev.tv_usec / 1000);
 }
 
-int get_settings(t_settings *settings, int argc, char **argv)
+int				get_settings(t_settings *settings, int argc, char **argv)
 {
 	if (argc < 5 || argc > 6 || (settings->p_count = ft_atoi(argv[1])) < 2 ||
 		(settings->t_die = ft_atoi(argv[2])) < 0 ||
 		(settings->t_eat = ft_atoi(argv[3])) < 0 ||
 		(settings->t_sleep = ft_atoi(argv[4])) < 0 ||
-		(argc == 6 &&(settings->e_count = ft_atoi(argv[5])) < 0))
+		(argc == 6 && (settings->e_count = ft_atoi(argv[5])) < 0))
 		return (write(1, INPUT, ft_strlen(INPUT)));
 	if (argc == 5)
 		settings->e_count = -1;
@@ -38,11 +37,11 @@ int get_settings(t_settings *settings, int argc, char **argv)
 		return (1);
 	if (!(settings->start_time = get_time()))
 		return (write(1, GTOD, ft_strlen(GTOD)));
-	settings->remain_philos = settings->p_count;
+	settings->remain_phs = settings->p_count;
 	return (0);
 }
 
-int		print_return(int retval, char *msg, int msg_l, sem_t *out)
+int				print_return(int retval, char *msg, int msg_l, sem_t *out)
 {
 	if (!(sem_wait(out)))
 	{
@@ -50,19 +49,20 @@ int		print_return(int retval, char *msg, int msg_l, sem_t *out)
 			write(1, msg, msg_l);
 	}
 	else
-		return (write(1, M_LOCK, M_LOCK_L));
+		return (write(1, ML, ML_L));
 	return (sem_post(out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : retval);
 }
 
-int		print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
+int				print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
 {
 	if (!(ph->temp_time = get_time()))
 		return (write(1, GTOD, GTOD_L));
 	if (!(sem_wait(ph->settings->out)))
 	{
-		if (ph->settings->remain_philos != -1)
+		if (ph->settings->remain_phs != -1)
 		{
-			ft_putnbr_fd(ph->temp_time - ph->settings->start_time, STDOUT_FILENO);
+			ft_putnbr_fd(ph->temp_time - ph->settings->start_time,
+				STDOUT_FILENO);
 			write(1, " ", 1);
 			ft_putnbr_fd(num, STDOUT_FILENO);
 			write(1, " ", 1);
@@ -70,6 +70,7 @@ int		print_timestamp(int num, char *msg, int msg_l, t_ph *ph)
 		}
 	}
 	else
-		return (write(1, M_LOCK, M_LOCK_L));
-	return (sem_post(ph->settings->out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L) : 0);
+		return (write(1, ML, ML_L));
+	return (sem_post(ph->settings->out) ? (int)write(1, M_UNLOCK, M_UNLOCK_L)
+	: 0);
 }
