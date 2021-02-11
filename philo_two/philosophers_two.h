@@ -1,5 +1,17 @@
-#ifndef PHILOSOPHERS_PHILOSOPHERS_H
-# define PHILOSOPHERS_PHILOSOPHERS_H
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philosophers_two.h                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:10:24 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:10:29 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef PHILOSOPHERS_PHILOSOPHERS_TWO_H
+# define PHILOSOPHERS_PHILOSOPHERS_TWO_H
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -49,12 +61,13 @@ typedef struct		s_settings
 	long long		t_eat;
 	long long		t_sleep;
 	long long		e_count;
+	int				remain_philos;
 	unsigned int	start_time;
-	pid_t 		*phs;
+	pthread_t		*phs;
 	sem_t *forks;
 	sem_t *out;
 	sem_t *dead;
-	sem_t *end;
+	sem_t *eat;
 }					t_settings;
 
 

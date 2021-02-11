@@ -1,8 +1,17 @@
-#include "philosophers.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_one.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:09:49 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:21:57 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philosophers_one.h"
 #include "philo_one.h"
-    #include <error.h>
-	 #include <errno.h>
-	 #include <err.h>
 void destroy_mutexes(pthread_mutex_t *mutexes, t_settings *settings, int index)
 {
 	int i;
@@ -124,7 +133,7 @@ int eat(t_ph *box)
 	return (0);
 }
 
-int simulation(t_ph *box, long long i)
+int simulation(t_ph *box)
 {
 	return (eat(box) || sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box) ||
 	sleep_with_error(0, THINK, THINK_L, box));
@@ -134,12 +143,11 @@ void *start_simulation(void *arg)
 {
 	t_ph *box;
 	box = (t_ph *)arg;
-	long long i;
 
 	box->eat_count = box->settings->e_count;
-	while (box->settings->remain_philos > 0 && box->eat_count)
+	while (box->settings->remain_philos > 0)
 	{
-		if (simulation(box, i))
+		if (box->eat_count && simulation(box))
 			return (NULL);
 	}
 	box->settings->remain_philos--;
@@ -178,13 +186,13 @@ void monitor(t_ph *phs)
 int	set_box(t_ph *boxes , pthread_mutex_t *mutexes, t_settings *settings)
 {
 	int i;
-	
+
 	i = -1;
 	while (++i < settings->p_count)
 	{
 		boxes[i].start = get_time();
 		boxes[i].temp_time = boxes[i].start + 1;
-		if (pthread_create(&settings->phs[i], NULL, start_simulation, (void *)(&boxes[i])))
+		if (pthread_create(&settings->phs[i], NULL, start_simulation, &boxes[i]))
 		{
 			settings->remain_philos = -1;
 			return (print_return(1, TH_CR, TH_CR_L, &settings->output_mutex));
@@ -214,7 +222,7 @@ int main(int argc, char **argv)
 	pthread_mutex_t eat_mutexes[settings.p_count];
 	pthread_mutex_t die_mutex;
 	t_ph phs[settings.p_count];
-	pthread_t threads[settings.p_count + 1];
+	pthread_t threads[settings.p_count];
 	if (set_mutexes(mutexes, &settings) || set_mutexes(eat_mutexes, &settings) ||
 		pthread_mutex_init(&die_mutex, NULL))
 		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings.output_mutex));
@@ -231,5 +239,8 @@ int main(int argc, char **argv)
 	printf("die mutex destroy:\n");
 
 	destroy_mutexes(&die_mutex,&settings, 1);
+	close(0);
+	close(1);
+	close(2);
 	return (ok);
 }

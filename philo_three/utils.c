@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_atoi.c                                          :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/24 17:18:38 by cbach             #+#    #+#             */
-/*   Updated: 2020/05/30 22:20:45 by cbach            ###   ########.fr       */
+/*   Updated: 2021/02/11 13:10:29 by cbach            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
-#include "philo_two.h"
+#include "philosophers_three.h"
+#include "philo_three.h"
 
 
 unsigned int get_time()

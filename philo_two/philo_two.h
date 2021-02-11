@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_two.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:10:21 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:10:29 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PHILOSOPHERS_PHILO_TWO_H
 # define PHILOSOPHERS_PHILO_TWO_H
-# include "philosophers.h"
+# include "philosophers_two.h"
 #include <semaphore.h>
 #include <fcntl.h>
 

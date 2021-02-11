@@ -1,4 +1,16 @@
-#include "philosophers.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_two.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:10:19 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:41:28 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philosophers_two.h"
 #include "philo_two.h"
 #include <error.h>
 #include <errno.h>
@@ -48,15 +60,31 @@ int take_fork(t_ph *box)
 		return (print_return(1, M_LOCK, M_LOCK_L,
 			box->settings->out));
 	}
-	return (check_death(box));
+	if (check_death(box))
+	{
+		sem_post(box->forks);
+		return (1);
+	}
+	return (0);
 }
 
 long long eat(t_ph *box)
 {
 	int ok = 0;
+	sem_wait(box->settings->eat);
 	if (take_fork(box))
+	{
+		sem_post(box->settings->eat);
+		return (1);
+	}
+	if (take_fork(box))
+	{
 		sem_post(box->forks);
-	if (take_fork(box) || !(box->start = get_time()) || sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
+		sem_post(box->settings->eat);
+		return (1);
+	}
+	sem_post(box->settings->eat);
+	if (!(box->start = get_time()) || sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
 	{
 		sem_post(box->forks);
 		sem_post(box->forks);
@@ -83,9 +111,9 @@ void *start_simulation(void *arg)
 	box = (t_ph *)arg;
 
 	box->eat_count = box->settings->e_count;
-	while (box->settings->remain_philos > 0 && box->eat_count)
+	while (box->settings->remain_philos > 0)
 	{
-		if (simulation(box))
+		if (box->eat_count && simulation(box))
 			return (NULL);
 	}
 	box->settings->remain_philos--;
@@ -158,20 +186,24 @@ int main(int argc, char **argv)
 		return (ok);
 	t_ph phs[settings.p_count];
 	pthread_t threads[settings.p_count + 1];
-	settings.phs = threads;
 	sem_unlink("forks");
 	sem_unlink("out");
 	sem_unlink("dead");
+	sem_unlink("eat");
+	settings.phs = threads;
 	settings.forks = sem_open("forks", O_CREAT | O_EXCL, 0644, settings.p_count);
 	settings.out = sem_open("out", O_CREAT | O_EXCL, 0644, 1);
 	settings.dead = sem_open("dead", O_CREAT | O_EXCL, 0644, 1);
+	settings.eat = sem_open("eat", O_CREAT | O_EXCL, 0644, 1);
 	sem_unlink("forks");
 	sem_unlink("out");
 	sem_unlink("dead");
+	sem_unlink("eat");
+	set_philos(phs, &settings);
+	ok = set_box(phs, &settings);
 	sem_close(settings.forks);
 	sem_close(settings.out);
 	sem_close(settings.dead);
-	set_philos(phs, &settings);
-	ok = set_box(phs, &settings);
+	sem_close(settings.eat);
 	return (ok);
 }

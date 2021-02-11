@@ -1,4 +1,16 @@
-#include "philosophers.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   libft_modified_utils.c                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:09:46 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:10:29 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philosophers_one.h"
 
 static int	is_over(long long int i, int multiplier, int current)
 {

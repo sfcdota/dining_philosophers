@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_one.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbach <cbach@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/02/11 13:09:51 by cbach             #+#    #+#             */
+/*   Updated: 2021/02/11 13:10:29 by cbach            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PHILOSOPHERS_PHILO_ONE_H
 # define PHILOSOPHERS_PHILO_ONE_H
-# include "philosophers.h"
+# include "philosophers_one.h"
 
 typedef struct	s_ph
 {
