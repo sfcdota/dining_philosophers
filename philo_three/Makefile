@@ -50,4 +50,4 @@ fclean: clean
 re: fclean all
 
 valgrind: ./$(NAME)
-	valgrind --leak-check=full --show-leak-kinds=all -s --track-fds=yes ./$(NAME) $(ARGS)
+	valgrind --leak-check=full --show-leak-kinds=all -s --track-fds=yes --track-origins=yes ./$(NAME) $(ARGS)

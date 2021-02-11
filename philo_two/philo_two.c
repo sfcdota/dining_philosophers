@@ -18,7 +18,6 @@ void	*start_simulation(void *arg)
 	t_ph *box;
 
 	box = (t_ph *)arg;
-	box->eat_count = box->settings->e_count;
 	while (box->settings->remain_phs > 0)
 	{
 		if (box->eat_count && eat(box) ||
@@ -100,5 +99,9 @@ int		main(int argc, char **argv)
 	t_settings	settings;
 	if (get_settings(&settings, argc, argv))
 		return (write(1, INPUT, INPUT_L));
-	return (start(&settings));
+	start(&settings);
+	close(0);
+	close(1);
+	close(2);
+	return (0);
 }

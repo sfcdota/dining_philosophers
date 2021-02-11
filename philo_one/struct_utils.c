@@ -45,19 +45,21 @@ int		set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
 void	set_philos(t_ph *phs, t_settings *settings, pthread_mutex_t *mutexes)
 {
 	int i;
-
+	int num;
 	i = -1;
 	while (++i < settings->p_count)
 	{
+		num = ((i + 1) % 2 == 0 ? i - 1 : i) % (i + 1);
 		phs[i].settings = settings;
 		phs[i].left_fork = &mutexes[i];
 		phs[i].right_fork =
 			i == settings->p_count - 1 ? &mutexes[0] : &mutexes[i + 1];
 		phs[i].eat =
-			&settings->eat_mutexes[((i + 1) % 2 == 0 ? i - 1 : i) % (i + 1)];
-		phs[i].dead = settings->die_mutex;
+			&settings->eat_mutexes[num];
+		phs[i].dead = settings->dead;
 		phs[i].num = i + 1;
 		phs[i].thread_started = 0;
+		phs[i].eat_count = settings->e_count;
 	}
 }
 

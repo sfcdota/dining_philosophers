@@ -72,9 +72,11 @@ int	eat(t_ph *box)
 {
 	int kek;
 
-	if (forks(box) || !(box->start = get_time())
+	if ((kek = forks(box)) || !(box->start = get_time())
 		|| sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
 	{
+		if (kek)
+			return (1);
 		kek = pthread_mutex_unlock(box->left_fork) +
 			pthread_mutex_unlock(box->right_fork) +
 			pthread_mutex_unlock(box->eat);

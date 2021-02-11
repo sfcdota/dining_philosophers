@@ -71,6 +71,12 @@ int		set_box(t_ph *boxes, t_settings *settings)
 			pthread_create(&settings->threads[i], NULL, monitor, &boxes[i]);
 			pthread_detach(settings->threads[i]);
 			kek = start_simulation(&boxes[i]);
+			close(0);
+			close(1);
+			close(2);
+			sem_close(settings->forks);
+			sem_close(settings->dead);
+			sem_close(settings->eat);
 			exit(kek);
 		}
 		else if (settings->phs[i] == -1)

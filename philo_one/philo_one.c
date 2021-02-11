@@ -59,28 +59,37 @@ void	monitor(t_ph *phs)
 		pthread_mutex_unlock(phs->dead);
 }
 
+int		start(t_settings *settings)
+{
+	pthread_mutex_t	mutexes[settings->p_count];
+	pthread_mutex_t	eat_mutexes[settings->p_count];
+	pthread_t		threads[settings->p_count];
+	t_ph			phs[settings->p_count];
+	pthread_mutex_t die_mutex;
+	
+	settings->dead = &die_mutex;
+	if (set_mutexes(mutexes, settings) || set_mutexes(eat_mutexes, settings)
+		|| pthread_mutex_init(settings->dead, NULL))
+		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings->output_mutex));
+	settings->eat_mutexes = eat_mutexes;
+	settings->phs = threads;
+	set_philos(phs, settings, mutexes);
+	settings->e_count = set_box(phs, mutexes, settings);
+	destroy_mutexes(mutexes, settings, settings->p_count);
+	destroy_mutexes(eat_mutexes, settings, settings->p_count);
+	destroy_mutexes(settings->dead, settings, 1);
+	return (0);
+}
+
 int		main(int argc, char **argv)
 {
 	t_settings		settings;
-	pthread_mutex_t	mutexes[settings.p_count];
-	pthread_mutex_t	eat_mutexes[settings.p_count];
-	pthread_t		threads[settings.p_count];
-	t_ph			phs[settings.p_count];
 
 	if ((get_settings(&settings, argc, argv)))
-		return (1);
-	if (set_mutexes(mutexes, &settings) || set_mutexes(eat_mutexes, &settings)
-	|| pthread_mutex_init(settings.die_mutex, NULL))
-		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings.output_mutex));
-	settings.eat_mutexes = eat_mutexes;
-	settings.phs = threads;
-	set_philos(phs, &settings, mutexes);
-	settings.e_count = set_box(phs, mutexes, &settings);
-	destroy_mutexes(mutexes, &settings, settings.p_count);
-	destroy_mutexes(eat_mutexes, &settings, settings.p_count);
-	destroy_mutexes(settings.die_mutex, &settings, 1);
+		return (write(1, INPUT, INPUT_L));
+	start(&settings);
 	close(0);
 	close(1);
 	close(2);
-	return ((int)settings.e_count);
+	return (0);
 }

@@ -25,6 +25,7 @@ void	set_philos(t_ph *phs, t_settings *settings)
 		phs[i].dead = settings->dead;
 		phs[i].num = i + 1;
 		phs[i].thread_started = 0;
+		phs[i].eat_count = settings->e_count;
 	}
 }
 

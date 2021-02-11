@@ -62,7 +62,7 @@ typedef struct		s_settings
 	long long		t_sleep;
 	long long		e_count;
 	pthread_mutex_t	output_mutex;
-	pthread_mutex_t *die_mutex;
+	pthread_mutex_t *dead;
 	pthread_mutex_t *eat_mutexes;
 	int				remain_phs;
 	unsigned int	start_time;

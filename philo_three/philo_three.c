@@ -35,6 +35,7 @@ int		start_simulation(void *arg)
 	if (status == 1)
 		return (box->num);
 	sem_close(box->settings->dead);
+	sem_close(box->settings->eat);
 	return (0);
 }
 
@@ -56,7 +57,7 @@ void	*monitor(void *arg)
 			sem_wait(phs->settings->out);
 			phs->settings->remain_phs = -phs->num;
 			ok = 0;
-			sem_post(phs->dead);
+//			sem_post(phs->dead);
 		}
 		usleep(1000);
 	}
@@ -99,6 +100,9 @@ int		start(t_settings *settings)
 	sem_close(settings->out);
 	sem_close(settings->dead);
 	sem_close(settings->eat);
+	close(0);
+	close(1);
+	close(2);
 	return (ok);
 }
 
