@@ -38,6 +38,7 @@ int				get_settings(t_settings *settings, int argc, char **argv)
 	if (!(settings->start_time = get_time()))
 		return (write(1, GTOD, ft_strlen(GTOD)));
 	settings->remain_phs = settings->p_count;
+	settings->t_die += 2;
 	return (0);
 }
 

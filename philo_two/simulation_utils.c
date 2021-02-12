@@ -65,14 +65,15 @@ int			forks(t_ph *box)
 		sem_post(box->settings->eat);
 		return (1);
 	}
-	sem_post(box->settings->eat);
 	return (0);
 }
 
 long long	eat(t_ph *box)
 {
-	if (forks(box) || !(box->start = get_time()) ||
-	sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
+	if (forks(box))
+		return (1);
+	if (!(box->start = get_time()) ||
+	sleep_with_error(box->settings->t_eat, EAT, EAT_L, box) || sem_post(box->settings->eat))
 	{
 		sem_post(box->forks);
 		sem_post(box->forks);

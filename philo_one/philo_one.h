@@ -14,6 +14,10 @@
 # define PHILOSOPHERS_PHILO_ONE_H
 # include "philosophers_one.h"
 
+/*
+** state: 0 - init value, 1 - want to eat, 2 - eating
+*/
+
 typedef struct		s_ph
 {
 	t_settings		*settings;
@@ -26,6 +30,7 @@ typedef struct		s_ph
 	long long		eat_count;
 	pthread_mutex_t *eat;
 	pthread_mutex_t *dead;
+	int				state;
 }					t_ph;
 int					print_return(int retval, char *msg, int msg_l,
 	pthread_mutex_t *out);

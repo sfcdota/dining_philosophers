@@ -45,17 +45,25 @@ void	monitor(t_ph *phs)
 				phs[i].temp_time = get_time();
 				if (phs[i].temp_time - phs[i].start > phs->settings->t_die)
 				{
-					print_timestamp(phs[i].num, DIE, DIE_L, &phs[i]);
+					sem_wait(phs->settings->out);
 					sem_wait(phs->dead);
+					usleep(500);
+					ft_putnbr_fd(get_time() - phs->settings->start_time,
+						STDOUT_FILENO);
+					write(1, " ", 1);
+					ft_putnbr_fd(phs->num, STDOUT_FILENO);
+					write(1, " ", 1);
+					write(1, DIE, DIE_L);
+//					print_timestamp(phs[i].num, DIE, DIE_L, &phs[i]);
 					phs->settings->remain_phs = -phs[i].num;
 					ok = 0;
+					usleep(500);
+					sem_post(phs->settings->out);
 				}
 			}
 		}
-		usleep(5000);
 	}
-	if (!ok)
-		sem_post(phs->dead);
+	sem_post(phs->dead);
 }
 
 int		sems(t_settings *settings)
@@ -68,7 +76,7 @@ int		sems(t_settings *settings)
 		settings->p_count);
 	settings->out = sem_open("out", O_CREAT | O_EXCL, 0644, 1);
 	settings->dead = sem_open("dead", O_CREAT | O_EXCL, 0644, 1);
-	settings->eat = sem_open("eat", O_CREAT | O_EXCL, 0644, 1);
+	settings->eat = sem_open("eat", O_CREAT | O_EXCL, 0644, (settings->p_count + 1) / 2);
 	sem_unlink("forks");
 	sem_unlink("out");
 	sem_unlink("dead");
