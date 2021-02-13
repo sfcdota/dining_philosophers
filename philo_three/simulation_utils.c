@@ -50,6 +50,8 @@ int			take_fork(t_ph *box)
 int			forks(t_ph *box)
 {
 	sem_wait(box->settings->eat);
+	if (check_death(box))
+		return (1);
 	if (take_fork(box))
 	{
 		sem_post(box->settings->eat);

@@ -38,17 +38,15 @@ int		waitchilds(t_settings *settings)
 
 	i = -1;
 	j = 0;
-	while (j < settings->p_count)
+	status = 0;
+	while (j < settings->p_count && !status)
 	{
 		if (waitpid(-1, &status, WUNTRACED) == -1)
-			print_return(1, TH_JO, TH_JO_L, settings->out);
+			write(1, TH_JO, TH_JO_L);
 		status = WEXITSTATUS(status);
 		if (status == 1)
-		{
 			while (++i < settings->p_count)
 				kill(settings->phs[i], SIGINT);
-			break ;
-		}
 		else
 			j++;
 	}

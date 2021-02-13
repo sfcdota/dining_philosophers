@@ -30,14 +30,14 @@ typedef struct		s_ph
 	long long		eat_count;
 	pthread_mutex_t *eat;
 	pthread_mutex_t *dead;
-	int				state;
 }					t_ph;
 int					print_return(int retval, char *msg, int msg_l,
 	pthread_mutex_t *out);
 int					print_timestamp(int num, char *msg, int msg_l, t_ph *ph);
 void				destroy_mutexes(pthread_mutex_t *mutexes,
 	t_settings *settings, int index);
-int					set_mutexes(pthread_mutex_t *mutexes, t_settings *settings);
+int					set_mutexes(pthread_mutex_t *mutexes, t_settings *settings,
+	int count);
 void				set_philos(t_ph *phs, t_settings *settings,
 	pthread_mutex_t *mutexes);
 int					set_box(t_ph *boxes, pthread_mutex_t *mutexes,

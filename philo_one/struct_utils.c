@@ -24,7 +24,7 @@ void	destroy_mutexes(pthread_mutex_t *mutexes,
 			print_return(1, M_DESTROY, M_DESTROY_L, &settings->output_mutex);
 }
 
-int		set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
+int		set_mutexes(pthread_mutex_t *mutexes, t_settings *settings, int count)
 {
 	int				i;
 	int				ok;
@@ -35,7 +35,7 @@ int		set_mutexes(pthread_mutex_t *mutexes, t_settings *settings)
 	i = -1;
 	if (pthread_mutex_init(&settings->output_mutex, NULL))
 		return (print_return(1, M_INIT_E, M_INIT_E_L, &settings->output_mutex));
-	while (++i < settings->p_count && !ok)
+	while (++i < count && !ok)
 		ok = pthread_mutex_init(&mutexes[i], NULL);
 	if (ok)
 		destroy_mutexes(start, settings, i);
@@ -49,7 +49,7 @@ void	set_philos(t_ph *phs, t_settings *settings, pthread_mutex_t *mutexes)
 	i = -1;
 	while (++i < settings->p_count)
 	{
-		num = ((i + 1) % 2 == 0 ? i - 1 : i) % (i + 1);
+		num = (((i + 1) % 2 == 0 ? i - 1 : i) % (i + 1)) / 2;
 		phs[i].settings = settings;
 		phs[i].left_fork = &mutexes[i];
 		phs[i].right_fork =

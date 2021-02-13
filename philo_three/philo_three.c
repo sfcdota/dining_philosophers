@@ -33,7 +33,7 @@ int		start_simulation(void *arg)
 	sem_close(box->settings->forks);
 	sem_close(box->settings->out);
 	if (status == 1)
-		return (box->num);
+		return (box->eat_count ? 1 : 0);
 	sem_close(box->settings->dead);
 	sem_close(box->settings->eat);
 	return (0);
@@ -52,12 +52,15 @@ void	*monitor(void *arg)
 		phs->temp_time = get_time();
 		if (phs->temp_time - phs->start > phs->settings->t_die)
 		{
-			print_timestamp(phs->num, DIE, DIE_L, phs);
 			sem_wait(phs->dead);
 			sem_wait(phs->settings->out);
+			ft_putnbr_fd(phs->temp_time - phs->settings->start_time, STDOUT_FILENO);
+			write(1, " ", 1);
+			ft_putnbr_fd(phs->num, STDOUT_FILENO);
+			write(1, " ", 1);
+			write(1, DIE, DIE_L);
 			phs->settings->remain_phs = -phs->num;
-			ok = 0;
-//			sem_post(phs->dead);
+			exit(1);
 		}
 		usleep(1000);
 	}
