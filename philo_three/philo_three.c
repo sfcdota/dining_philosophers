@@ -41,12 +41,10 @@ int		start_simulation(void *arg)
 
 void	*monitor(void *arg)
 {
-	int		ok;
 	t_ph	*phs;
 
-	ok = 1;
 	phs = (t_ph *)arg;
-	while (ok && phs->settings->remain_phs && (phs->settings->e_count == -1 ? 1
+	while (phs->settings->remain_phs && (phs->settings->e_count == -1 ? 1
 	: phs->settings->e_count))
 	{
 		phs->temp_time = get_time();
@@ -54,7 +52,8 @@ void	*monitor(void *arg)
 		{
 			sem_wait(phs->dead);
 			sem_wait(phs->settings->out);
-			ft_putnbr_fd(phs->temp_time - phs->settings->start_time, STDOUT_FILENO);
+			ft_putnbr_fd(phs->temp_time - phs->settings->start_time,
+				STDOUT_FILENO);
 			write(1, " ", 1);
 			ft_putnbr_fd(phs->num, STDOUT_FILENO);
 			write(1, " ", 1);

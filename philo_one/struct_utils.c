@@ -46,6 +46,7 @@ void	set_philos(t_ph *phs, t_settings *settings, pthread_mutex_t *mutexes)
 {
 	int i;
 	int num;
+
 	i = -1;
 	while (++i < settings->p_count)
 	{
@@ -63,7 +64,7 @@ void	set_philos(t_ph *phs, t_settings *settings, pthread_mutex_t *mutexes)
 	}
 }
 
-int		set_box(t_ph *boxes, pthread_mutex_t *mutexes, t_settings *settings)
+int		set_box(t_ph *boxes, t_settings *settings)
 {
 	int i;
 

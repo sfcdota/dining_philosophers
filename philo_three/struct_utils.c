@@ -80,6 +80,5 @@ int		set_box(t_ph *boxes, t_settings *settings)
 		else if (settings->phs[i] == -1)
 			return (print_return(1, TH_CR, TH_CR_L, settings->out));
 	}
-	waitchilds(settings);
-	return (0);
+	return (waitchilds(settings));
 }

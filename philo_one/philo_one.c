@@ -25,9 +25,11 @@ void	*start_simulation(void *arg)
 		usleep(1000 * (box->settings->t_eat + box->settings->t_sleep));
 	while (box->settings->remain_phs > 0)
 	{
-		if (box->eat_count && eat(box) ||
+		if ((box->eat_count && eat(box)) ||
 			sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box) ||
-			sleep_with_error(box->settings->p_count % 2 ? box->settings->t_eat - 10: 0, THINK, THINK_L, box))
+			sleep_with_error(
+				box->settings->p_count % 2 ? box->settings->t_eat - 10 : 0,
+				THINK, THINK_L, box))
 			return (NULL);
 	}
 	box->settings->remain_phs--;
@@ -70,7 +72,7 @@ int		start(t_settings *settings)
 	pthread_t		threads[settings->p_count];
 	t_ph			phs[settings->p_count];
 	pthread_mutex_t die_mutex;
-	
+
 	settings->dead = &die_mutex;
 	if (set_mutexes(mutexes, settings, settings->p_count) ||
 	set_mutexes(eat_mutexes, settings, (settings->p_count + 1) / 2)
@@ -79,7 +81,7 @@ int		start(t_settings *settings)
 	settings->eat_mutexes = eat_mutexes;
 	settings->phs = threads;
 	set_philos(phs, settings, mutexes);
-	settings->e_count = set_box(phs, mutexes, settings);
+	settings->e_count = set_box(phs, settings);
 	destroy_mutexes(mutexes, settings, settings->p_count);
 	destroy_mutexes(eat_mutexes, settings, (settings->p_count + 1) / 2);
 	destroy_mutexes(settings->dead, settings, 1);

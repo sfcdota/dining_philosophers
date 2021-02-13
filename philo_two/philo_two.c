@@ -22,7 +22,7 @@ void	*start_simulation(void *arg)
 		usleep(2000 + 10 * box->settings->p_count);
 	while (box->settings->remain_phs > 0)
 	{
-		if (box->eat_count && eat(box) ||
+		if ((box->eat_count && eat(box)) ||
 		sleep_with_error(box->settings->t_sleep, SLEEP, SLEEP_L, box) ||
 			sleep_with_error(0, THINK, THINK_L, box))
 			return (NULL);
@@ -99,6 +99,7 @@ int		start(t_settings *settings)
 int		main(int argc, char **argv)
 {
 	t_settings	settings;
+
 	if (get_settings(&settings, argc, argv))
 		return (write(1, INPUT, INPUT_L));
 	start(&settings);

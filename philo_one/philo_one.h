@@ -40,11 +40,11 @@ int					set_mutexes(pthread_mutex_t *mutexes, t_settings *settings,
 	int count);
 void				set_philos(t_ph *phs, t_settings *settings,
 	pthread_mutex_t *mutexes);
-int					set_box(t_ph *boxes, pthread_mutex_t *mutexes,
+int					set_box(t_ph *boxes,
 	t_settings *settings);
 int					check_death(t_ph *box);
 int					sleep_with_error(long val, char *msg, int msg_l, t_ph *box);
-int					take_a_fork(t_ph *box, long start, pthread_mutex_t *fork);
+int					take_a_fork(t_ph *box, pthread_mutex_t *fork);
 int					unlock_eat(t_ph *box);
 int					eat(t_ph *box);
 void				*start_simulation(void *arg);

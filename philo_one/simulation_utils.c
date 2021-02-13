@@ -33,7 +33,7 @@ int	sleep_with_error(long val, char *msg, int msg_l, t_ph *box)
 	return (check_death(box));
 }
 
-int	take_a_fork(t_ph *box, long start, pthread_mutex_t *fork)
+int	take_a_fork(t_ph *box, pthread_mutex_t *fork)
 {
 	if (pthread_mutex_lock(fork))
 		return (print_return(2, ML, ML_L, &box->settings->output_mutex));
@@ -50,14 +50,14 @@ int	forks(t_ph *box)
 		return (print_return(1, ML, ML_L, &box->settings->output_mutex));
 	if (check_death(box))
 		return (pthread_mutex_unlock(box->eat) || 1);
-	if ((status = take_a_fork(box, box->start, box->left_fork)))
+	if ((status = take_a_fork(box, box->left_fork)))
 	{
 		pthread_mutex_unlock(box->eat);
 		if (status == 1)
 			pthread_mutex_unlock(box->left_fork);
 		return (1);
 	}
-	if ((status = take_a_fork(box, box->start, box->right_fork)))
+	if ((status = take_a_fork(box, box->right_fork)))
 	{
 		pthread_mutex_unlock(box->eat);
 		pthread_mutex_unlock(box->left_fork);
@@ -72,7 +72,8 @@ int	eat(t_ph *box)
 {
 	int kek;
 
-	if ((kek = forks(box)) || !(box->start = get_time())
+	kek = forks(box);
+	if (kek || !(box->start = get_time())
 		|| sleep_with_error(box->settings->t_eat, EAT, EAT_L, box))
 	{
 		if (kek)
